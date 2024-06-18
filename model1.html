@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Summer CAM WDD Using AI</title><!-- Include jQuery -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+
+  <!-- Include Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+  <style>
+    main div {
+      border: 1px solid black;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    #div9 {
+      background-color: black;
+      color: red; /* Changed the font color to red */
+    }
+  </style>
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+</head>
+<body>
+  <main>
+    <div class="container">
+      <div class="jumbotron">
+        <h1 class="display-4">Summer CAM WDD Using AI</h1>
+      </div>
+
+      <div id="div1">
+        <h2>Section 1. What is a linear regression?</h2>
+        <ul>
+          <li>It tries to find a linear function y=wx+b.</li>
+          <li>The linear function tries to fit a collection of number pairs, such as house sales, (sqft, sale price).</li>
+          <li>There is no linear function that can accurately fit all number pairs. So, we have to find the 'best' one.</li>
+          <li>By being best, we design a so-called cost function, such as mean square error invented by the great Carl Gauss.</li>
+          <li>This is what machine learning is doing.<br><img src="linearRegression1.jpg" alt="Linear Regression Image" width="400" height="300"></li>
+        </ul>
+      </div>
+
+      <div id="div2">
+        <h2>Section 2. The JavaScript libraries to use</h2>
+        <p>We will use TensorFlow.js to train the model.</p>
+        <p>Click the 'Run' button below to import two JavaScript libraries.</p>
+      </div>
+
+      <div id="div3">
+        <button onclick="loadLibraries()">Run</button>
+      </div>
+
+      <div id="div4"></div>
+
+      <div id="div5">
+        <h2>Section 3. Using the dataset from Google</h2>
+        <p>We will use a dataset from Google,</p>
+        <p><a href="https://storage.googleapis.com/tfjs-tutorials/carsData.json">https://storage.googleapis.com/tfjs-tutorials/carsData.json</a></p>
+        <button onclick="loadDataset()">Load the dataset</button>
+      </div>
+
+      <div id="div6"></div>
+
+      <div id="div7">
+        <h2>Section 4. Extract the Miles_per_Gallon and Horsepower</h2>
+        <p>We will use only Miles_per_Gallon:value and Horsepower: value for our training.</p>
+        <button onclick="extractData()">Extract training dataset</button>
+      </div>
+
+      <div id="div8">
+        <h2>Section 5. Visualize the training dataset</h2>
+        <button onclick="visualizeData()">Visualize the training dataset</button>
+        <div id="plot"></div>
+      </div>
+
+      <div id="div9">
+        <h2>Section 6. Define the model</h2>
+        <button onclick="defineModel()">Define the model</button> <!-- Added the "Define the model" button -->
+        <p>We will define a TensorFlow sequential model with one input x and one output y.</p>
+      </div>
+
+      <div id="div10">
+        <button onclick="showModelSummary()">Show summary of the model</button>
+        <pre id="modelSummary"></pre>
+      </div>
+
+      <div id="div11">
+        <h2>Section 7. Prepare the training set</h2>
+        <button onclick="prepareDataset()">Prepare the dataset</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Include Bootstrap JavaScript -->
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
+  <script>
+    var globalDataset; // Global variable to store the dataset
+    var extractedDataset; // Global variable to store the extracted dataset
+    var model; // Global variable to store the TensorFlow model
+    var preparedDataset; // Global variable to store the prepared dataset
+
+    function loadLibraries() {
+      var script1 = document.createElement('script');
+      script1.src = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.0/dist/tf.min.js";
+      document.head.appendChild(script1);
+
+      var script2 = document.createElement('script');
+      script2.src = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@1.0.2/dist/tfjs-vis.umd.min.js";
+      document.head.appendChild(script2);
+
+      var div4 = document.getElementById("div4");
+      div4.innerHTML = "Libraries loaded.";
+    }
+
+    function loadDataset() {
+  var div6 = document.getElementById("div6");
+  div6.innerHTML = "Loading the dataset...";
+  console.log("Loading the dataset...");
+
+  fetch("https://storage.googleapis.com/tfjs-tutorials/carsData.json")
+    .then(response => response.json())
+    .then(data => {
+      console.log("Dataset loaded:", data.slice(0, 10)); // Display only the first 10 data values
+      globalDataset = data; // Save the dataset to the global variable
+     
+      var firstTenData = globalDataset.slice(0, 10); // Get the first ten data values
+      div6.innerHTML = "Dataset loaded. First ten data values: " + JSON.stringify(firstTenData); 
+    })
+    .catch(error => {
+      console.error("Error loading the dataset:", error);
+      div6.innerHTML = "Error loading the dataset. Check the console for details.";
+    });
+}
+
+function extractData() {
+  if (globalDataset) {
+    extractedDataset = globalDataset.map(item => {
+      return {
+        "Miles_per_Gallon": item.Miles_per_Gallon,
+        "Horsepower": item.Horsepower
+      };
+    });
+ 
+    var div7 = document.getElementById("div7");
+    div7.innerHTML += ("<br>"+ extractedDataset.slice(0, 10));
+  } else {
+    console.error("No dataset loaded. Please load the dataset first.");
+  }
+}
+
+
+
+function visualizeData() {
+        const horsepowerValues = extractedDataset.map(item => item.Horsepower);
+        const mpgValues = extractedDataset.map(item => item.Miles_per_Gallon);
+
+        const trace = {
+            x: horsepowerValues,
+            y: mpgValues,
+            mode: 'markers',
+            type: 'scatter'
+        };
+
+        const layout = {
+            title: 'Horsepower vs Miles_per_Gallon',
+            xaxis: {
+                title: 'Horsepower',
+                range: [0, 240],
+                dtick: 20
+            },
+            yaxis: {
+                title: 'MPG',
+                range: [0, 50],
+                dtick: 10
+            }
+        };
+
+        Plotly.newPlot('plot', [trace], layout);
+      }
+
+
+    function showModelSummary() {
+      if (model) {
+        /*
+        const modelSummary = model.summary().toString();
+        const modelSummaryElement = document.getElementById("modelSummary");
+        modelSummaryElement.textContent = modelSummary;
+        */
+
+        const container = document.getElementById('modelSummary');
+        tfvis.show.modelSummary(container, model);   
+      } else {
+        console.error("No model defined yet.");
+      }
+    }
+
+    function defineModel() {
+      model = tf.sequential();
+      model.add(tf.layers.dense({ inputShape: [1], units: 1 }));
+      model.add(tf.layers.dense({ units: 1 }));
+      console.log("Model defined:", model);
+    }
+
+    function prepareDataset() {
+      if (extractedDataset) {
+        const inputs = extractedDataset.map(item => item.Horsepower);
+        const labels = extractedDataset.map(item => item.Miles_per_Gallon);
+
+        const inputTensor = tf.tensor2d(inputs, [inputs.length, 1]);
+        const labelTensor = tf.tensor2d(labels, [labels.length, 1]);
+
+        const inputMax = inputTensor.max();
+        const inputMin = inputTensor.min();
+        const labelMax = labelTensor.max();
+        const labelMin = labelTensor.min();
+
+        const normalizedInputs = inputTensor.sub(inputMin).div(inputMax.sub(inputMin));
+        const normalizedLabels = labelTensor.sub(labelMin).div(labelMax.sub(labelMin));
+
+        preparedDataset = {
+          inputs: normalizedInputs,
+          labels: normalizedLabels,
+          inputMax: inputMax,
+          inputMin: inputMin,
+          labelMax: labelMax,
+          labelMin: labelMin
+        };
+
+        console.log("Prepared dataset:", preparedDataset);
+      } else {
+        console.error("No extracted dataset available.");
+      }
+    }
+  </script>
+</body>
+</html>
